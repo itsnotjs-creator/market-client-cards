@@ -2,8 +2,7 @@ import './globals.css';
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript';
 import { Inter } from 'next/font/google';
 import Providers from './providers';
-import SiteHeader from '../modules/components/SiteHeader';
-import SiteFooter from '../modules/components/SiteFooter';
+import LayoutClient from './layout-client';
 
 const bodyFont = Inter({
   subsets: ['latin'],
@@ -35,11 +34,7 @@ export default function RootLayout({ children }) {
       <body>
         <InitColorSchemeScript defaultMode="light" />
         <Providers>
-          <div className="shell">
-            <SiteHeader />
-            {children}
-            <SiteFooter />
-          </div>
+          <LayoutClient>{children}</LayoutClient>
         </Providers>
       </body>
     </html>

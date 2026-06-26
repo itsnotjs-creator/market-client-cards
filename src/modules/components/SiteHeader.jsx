@@ -9,6 +9,7 @@ import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import SupportAgentOutlinedIcon from "@mui/icons-material/SupportAgentOutlined";
 import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
 import LogoutIcon from "@mui/icons-material/Logout";
+import Skeleton from "@mui/material/Skeleton";
 import { useAuthStore, SESSION_STATUS } from "../../store/authStore";
 
 const navigation = [
@@ -28,6 +29,7 @@ export default function SiteHeader() {
   const status = useAuthStore((state) => state.status);
   const logout = useAuthStore((state) => state.logout);
 
+  const isLoading = status === SESSION_STATUS.IDLE || status === SESSION_STATUS.CHECKING;
   const isAuthenticated =
     status === SESSION_STATUS.AUTHENTICATED && Boolean(session?.user);
 
@@ -83,7 +85,14 @@ export default function SiteHeader() {
           </div>
 
           <div className="site-header__actions">
-            {isAuthenticated ? (
+            {isLoading ? (
+              <Skeleton
+                variant="rectangular"
+                width={140}
+                height={40}
+                sx={{ borderRadius: 1 }}
+              />
+            ) : isAuthenticated ? (
               <>
                 <Link
                   href="/perfil"

@@ -1,14 +1,17 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAuthStore } from '../../store/authStore';
 
 export default function SessionInitializer() {
   const initializeSession = useAuthStore((state) => state.initializeSession);
-  const status = useAuthStore((state) => state.status);
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
-    initializeSession();
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      initializeSession();
+    }
   }, [initializeSession]);
 
   return null;

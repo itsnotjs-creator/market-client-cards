@@ -97,7 +97,7 @@ export const useAuthStore = create(
 
         set({
           session: null,
-          status: SESSION_STATUS.IDLE,
+          status: SESSION_STATUS.ANONYMOUS,
           error: null,
         });
       },
@@ -120,8 +120,17 @@ export const useAuthStore = create(
       name: 'cuatro-ruedas-auth',
       partialize: (state) => ({
         session: state.session,
-        status: state.status,
       }),
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState || {};
+        const hasSession = Boolean(persisted.session?.user);
+
+        return {
+          ...currentState,
+          ...persisted,
+          status: hasSession ? SESSION_STATUS.AUTHENTICATED : SESSION_STATUS.IDLE,
+        };
+      },
     }
   )
 );

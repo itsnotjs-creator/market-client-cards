@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import CircularProgress from "@mui/material/CircularProgress";
 import { useAuthStore, SESSION_STATUS } from "../../store/authStore";
 import { handleApiError } from "../../lib/errorHandler";
 
@@ -24,9 +25,7 @@ export default function LoginForm({ compact = false }) {
     try {
       await login({ rut, password });
 
-      if (compact) {
-        router.push("/perfil");
-      }
+      router.push("/catalogo");
     } catch (error) {
       handleApiError(error);
     }
@@ -78,7 +77,9 @@ export default function LoginForm({ compact = false }) {
             type="submit"
             className="login-card__submit"
             disabled={isSubmitting}
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
           >
+            {isSubmitting && <CircularProgress size={20} color="inherit" />}
             {isSubmitting ? "Iniciando sesión..." : "Iniciar sesión"}
           </button>
         </form>
@@ -150,7 +151,9 @@ export default function LoginForm({ compact = false }) {
           type="submit"
           className="login-card__submit"
           disabled={isSubmitting}
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
         >
+          {isSubmitting && <CircularProgress size={20} color="inherit" />}
           {isSubmitting ? "Iniciando sesión..." : "Iniciar sesión"}
         </button>
       </form>
