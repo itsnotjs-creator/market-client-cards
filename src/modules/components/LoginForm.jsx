@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useAuthStore, SESSION_STATUS } from '../../store/authStore';
-import { handleApiError } from '../../lib/errorHandler';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAuthStore, SESSION_STATUS } from "../../store/authStore";
+import { handleApiError } from "../../lib/errorHandler";
 
 export default function LoginForm({ compact = false }) {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
   const status = useAuthStore((state) => state.status);
-  const [rut, setRut] = useState('');
-  const [password, setPassword] = useState('');
+  const [rut, setRut] = useState("");
+  const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
 
   const isSubmitting = status === SESSION_STATUS.AUTHENTICATING;
@@ -25,7 +25,7 @@ export default function LoginForm({ compact = false }) {
       await login({ rut, password });
 
       if (compact) {
-        router.push('/perfil');
+        router.push("/perfil");
       }
     } catch (error) {
       handleApiError(error);
@@ -36,7 +36,9 @@ export default function LoginForm({ compact = false }) {
     return (
       <div className="login-card">
         <h2 className="login-card__title">Acceso a Carro de Compras</h2>
-        <p className="login-card__subtitle">Ingresa con tus credenciales para ver precios y realizar pedidos.</p>
+        <p className="login-card__subtitle">
+          Ingresa con tus credenciales para ver precios y realizar pedidos.
+        </p>
 
         <form onSubmit={handleSubmit}>
           <div className="login-card__field">
@@ -61,7 +63,7 @@ export default function LoginForm({ compact = false }) {
               disabled={isSubmitting}
             />
           </div>
-          <div className="login-card__options">
+          {/* <div className="login-card__options">
             <label>
               <input
                 type="checkbox"
@@ -71,25 +73,40 @@ export default function LoginForm({ compact = false }) {
               Recordar mis datos
             </label>
             <Link href="/recuperar-password">¿Olvidaste tu contraseña?</Link>
-          </div>
-          <button type="submit" className="login-card__submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Iniciando sesión...' : 'Iniciar sesión'}
+          </div> */}
+          <button
+            type="submit"
+            className="login-card__submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Iniciando sesión..." : "Iniciar sesión"}
           </button>
         </form>
 
         <div className="login-card__footer">
-          ¿Aún no eres cliente? <Link href="/hazte-cliente">Hazte cliente aquí</Link>
+          ¿Aún no eres cliente?{" "}
+          <Link href="/hazte-cliente">Hazte cliente aquí</Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="login-card" style={{ maxWidth: '480px', margin: '0 auto' }}>
-      <h2 className="login-card__title" style={{ textAlign: 'center', fontSize: '1.5rem', marginBottom: '0.5rem' }}>
+    <div className="login-card" style={{ maxWidth: "480px", margin: "0 auto" }}>
+      <h2
+        className="login-card__title"
+        style={{
+          textAlign: "center",
+          fontSize: "1.5rem",
+          marginBottom: "0.5rem",
+        }}
+      >
         Iniciar Sesión
       </h2>
-      <p className="login-card__subtitle" style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+      <p
+        className="login-card__subtitle"
+        style={{ textAlign: "center", marginBottom: "1.5rem" }}
+      >
         Accede con tu RUT y contraseña
       </p>
 
@@ -118,7 +135,7 @@ export default function LoginForm({ compact = false }) {
             required
           />
         </div>
-        <div className="login-card__options">
+        {/* <div className="login-card__options">
           <label>
             <input
               type="checkbox"
@@ -128,14 +145,19 @@ export default function LoginForm({ compact = false }) {
             Recordar mis datos
           </label>
           <Link href="/recuperar-password">¿Olvidaste tu contraseña?</Link>
-        </div>
-        <button type="submit" className="login-card__submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Iniciando sesión...' : 'Iniciar sesión'}
+        </div> */}
+        <button
+          type="submit"
+          className="login-card__submit"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Iniciando sesión..." : "Iniciar sesión"}
         </button>
       </form>
 
       <div className="login-card__footer">
-        ¿Aún no eres cliente? <Link href="/hazte-cliente">Hazte cliente aquí</Link>
+        ¿Aún no eres cliente?{" "}
+        <Link href="/hazte-cliente">Hazte cliente aquí</Link>
       </div>
     </div>
   );
