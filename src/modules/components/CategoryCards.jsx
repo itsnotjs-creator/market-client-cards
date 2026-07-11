@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Skeleton from "@mui/material/Skeleton";
 import { categoryService } from "../../services/category.service";
-import { API_BASE_URL } from "../../lib/fetch.service";
+import { API_BASE_URL } from "../../lib/fetcher";
 
 export default function CategoryCards() {
   const router = useRouter();
@@ -43,7 +43,12 @@ export default function CategoryCards() {
     return (
       <div className="category-cards">
         {[...Array(6)].map((_, i) => (
-          <Skeleton key={i} variant="rectangular" height={180} sx={{ borderRadius: 2 }} />
+          <Skeleton
+            key={i}
+            variant="rectangular"
+            height={180}
+            sx={{ borderRadius: 2 }}
+          />
         ))}
       </div>
     );

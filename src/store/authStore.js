@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { authService } from '../services/auth.service';
-import { setForbiddenHandler } from '../lib/fetch.service';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { authService } from "../services/auth.service";
+import { setForbiddenHandler } from "../lib/fetcher";
 
 export const SESSION_STATUS = {
-  IDLE: 'idle',
-  CHECKING: 'checking',
-  ANONYMOUS: 'anonymous',
-  AUTHENTICATING: 'authenticating',
-  AUTHENTICATED: 'authenticated',
+  IDLE: "idle",
+  CHECKING: "checking",
+  ANONYMOUS: "anonymous",
+  AUTHENTICATING: "authenticating",
+  AUTHENTICATED: "authenticated",
 };
 
 const normalizeSession = (sessionResponse) => {
@@ -36,19 +36,25 @@ export const useAuthStore = create(
 
           set({
             session,
-            status: session ? SESSION_STATUS.AUTHENTICATED : SESSION_STATUS.ANONYMOUS,
+            status: session
+              ? SESSION_STATUS.AUTHENTICATED
+              : SESSION_STATUS.ANONYMOUS,
             error: null,
           });
         } catch (error) {
           if (error?.status === 401 || error?.status === 403) {
-            set({ session: null, status: SESSION_STATUS.ANONYMOUS, error: null });
+            set({
+              session: null,
+              status: SESSION_STATUS.ANONYMOUS,
+              error: null,
+            });
             return;
           }
 
           set({
             session: null,
             status: SESSION_STATUS.ANONYMOUS,
-            error: error?.message || 'No se pudo validar la sesión',
+            error: error?.message || "No se pudo validar la sesión",
           });
         }
       },
@@ -61,7 +67,7 @@ export const useAuthStore = create(
           const session = normalizeSession(await authService.getSession());
 
           if (!session) {
-            throw new Error('La sesión no quedó disponible después del login');
+            throw new Error("La sesión no quedó disponible después del login");
           }
 
           set({
@@ -74,7 +80,7 @@ export const useAuthStore = create(
           set({
             session: null,
             status: SESSION_STATUS.ANONYMOUS,
-            error: error?.message || 'No se pudo iniciar sesión',
+            error: error?.message || "No se pudo iniciar sesión",
           });
           throw error;
         }
@@ -85,12 +91,11 @@ export const useAuthStore = create(
 
         try {
           await authService.signOut();
-        } catch (_) {
-        }
+        } catch (_) {}
 
-        if (typeof document !== 'undefined') {
-          document.cookie.split(';').forEach((cookie) => {
-            const name = cookie.split('=')[0].trim();
+        if (typeof document !== "undefined") {
+          document.cookie.split(";").forEach((cookie) => {
+            const name = cookie.split("=")[0].trim();
             document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
           });
         }
@@ -109,15 +114,18 @@ export const useAuthStore = create(
           error: null,
         });
 
-        if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-          window.location.replace('/login');
+        if (
+          typeof window !== "undefined" &&
+          window.location.pathname !== "/login"
+        ) {
+          window.location.replace("/login");
         }
       },
 
       clearError: () => set({ error: null }),
     }),
     {
-      name: 'cuatro-ruedas-auth',
+      name: "cuatro-ruedas-auth",
       partialize: (state) => ({
         session: state.session,
       }),
@@ -128,11 +136,13 @@ export const useAuthStore = create(
         return {
           ...currentState,
           ...persisted,
-          status: hasSession ? SESSION_STATUS.AUTHENTICATED : SESSION_STATUS.IDLE,
+          status: hasSession
+            ? SESSION_STATUS.AUTHENTICATED
+            : SESSION_STATUS.IDLE,
         };
       },
-    }
-  )
+    },
+  ),
 );
 
 setForbiddenHandler(() => useAuthStore.getState().handleForbiddenLogout());
