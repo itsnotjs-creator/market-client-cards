@@ -1,9 +1,6 @@
 import Link from 'next/link';
-import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
-import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
-import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
 
 export default function SiteFooter() {
   return (
@@ -11,17 +8,24 @@ export default function SiteFooter() {
       <div className="page-shell">
         <div className="footer__grid">
           <div className="footer__col">
-            <h4>Importadora Cuatro Ruedas</h4>
-            <p>Desde 1981 entregando soluciones de calidad al mercado automotriz chileno.</p>
+            <h4>PERFUMES VIP</h4>
+            <p>Tu tienda de confianza en perfumes 100% originales. Las mejores marcas a los mejores precios, con envíos a todo Chile.</p>
           </div>
 
           <div className="footer__col">
-            <h4>Casa Matriz</h4>
-            <p>Río Clarillo 1258, Parque Industrial ENEA</p>
-            <p>Pudahuel, Santiago - Chile</p>
-            <Link href="https://maps.google.com" className="footer__col-link" style={{ color: 'var(--blue-light)', fontSize: '0.82rem' }}>
-              Ver en Google Maps
-            </Link>
+            <h4>Navegación</h4>
+            <Link href="/">Inicio</Link>
+            <Link href="/productos">Perfumes</Link>
+            <Link href="/productos?q=novedades">Novedades</Link>
+            <Link href="/productos?q=ofertas">Ofertas</Link>
+          </div>
+
+          <div className="footer__col">
+            <h4>Ayuda</h4>
+            <Link href="/contacto">Contáctanos</Link>
+            <Link href="/empresa">Sobre nosotros</Link>
+            <Link href="/perfil">Mi cuenta</Link>
+            <Link href="/login">Iniciar sesión</Link>
           </div>
 
           <div className="footer__col">
@@ -32,24 +36,16 @@ export default function SiteFooter() {
             </p>
             <p style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <EmailOutlinedIcon fontSize="small" />
-              ventas@cuatroruedas.cl
+              ventas@perfumesvip.cl
             </p>
-            <Link href="/contacto" style={{ color: 'var(--blue-light)', fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.5rem' }}>
-              Formulario de contacto
-            </Link>
-          </div>
-
-          <div className="footer__col">
-            <h4>¿Quieres ser cliente?</h4>
-            <p>Completa el formulario y nuestro equipo comercial se pondrá en contacto contigo.</p>
-            <Link href="/hazte-cliente" style={{ color: 'var(--blue-light)', fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.5rem' }}>
-              Hazte cliente aquí
+            <Link href="/contacto" className="footer__gold-link">
+              Formulario de contacto →
             </Link>
           </div>
         </div>
 
         <div className="footer__bottom">
-          © {new Date().getFullYear()} Importadora Cuatro Ruedas. Todos los derechos reservados.
+          © {new Date().getFullYear()} PERFUMES VIP. Todos los derechos reservados.
         </div>
       </div>
     </footer>

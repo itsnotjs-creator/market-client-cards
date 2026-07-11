@@ -1,7 +1,5 @@
 import Hero from '../modules/components/Hero';
-import FeaturesSection from '../modules/components/FeaturesSection';
-import BrandsSection from '../modules/components/BrandsSection';
-import InfoSection from '../modules/components/InfoSection';
+import RelevantBanner from '../modules/components/RelevantBanner';
 
 export const metadata = {
   title: 'Inicio',
@@ -12,9 +10,7 @@ export default function HomePage() {
   return (
     <main>
       <Hero />
-      <FeaturesSection />
-      <BrandsSection />
-      <InfoSection />
+      <RelevantBanner />
     </main>
   );
 }

@@ -1,33 +1,75 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useState, Suspense } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import SearchIcon from "@mui/icons-material/Search";
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
-import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
-import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
-import SupportAgentOutlinedIcon from "@mui/icons-material/SupportAgentOutlined";
-import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
 import LogoutIcon from "@mui/icons-material/Logout";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import Skeleton from "@mui/material/Skeleton";
 import { useAuthStore, SESSION_STATUS } from "../../store/authStore";
+import CartIcon from "./CartIcon";
+import CartDrawer from "./CartDrawer";
 
 const navigation = [
   { href: "/", label: "Inicio" },
-  { href: "/empresa", label: "Empresa" },
-  { href: "/productos", label: "Productos" },
-  { href: "/marcas", label: "Marcas" },
-  { href: "/fuerza-de-venta", label: "Fuerza de Venta" },
-  { href: "/hazte-cliente", label: "Hazte Cliente" },
-  { href: "/novedades", label: "Novedades" },
+  { href: "/productos", label: "Perfumes" },
+  { href: "/productos?q=novedades", label: "Novedades" },
+  { href: "/productos?q=ofertas", label: "Ofertas" },
+  { href: "/empresa", label: "Sobre nosotros" },
   { href: "/contacto", label: "Contacto" },
 ];
 
+function NavLinks() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  return (
+    <nav className="site-nav" aria-label="Navegación principal">
+      <div className="page-shell site-nav__inner">
+        {navigation.map((item) => {
+          const [itemPath, itemQuery] = item.href.split("?");
+          const itemParams = new URLSearchParams(itemQuery || "");
+          const itemQ = itemParams.get("q");
+
+          let isActive;
+          if (item.href === "/") {
+            isActive = pathname === "/";
+          } else if (itemQ) {
+            isActive = pathname === itemPath && searchParams.get("q") === itemQ;
+          } else {
+            isActive =
+              (pathname === itemPath && !searchParams.get("q")) ||
+              (pathname !== itemPath && pathname.startsWith(`${itemPath}/`));
+          }
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="site-nav__link"
+              data-active={isActive}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
 export default function SiteHeader() {
   const pathname = usePathname();
+  const router = useRouter();
   const session = useAuthStore((state) => state.session);
   const status = useAuthStore((state) => state.status);
   const logout = useAuthStore((state) => state.logout);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
 
   const isLoading = status === SESSION_STATUS.IDLE || status === SESSION_STATUS.CHECKING;
   const isAuthenticated =
@@ -38,126 +80,101 @@ export default function SiteHeader() {
     window.location.href = "/";
   };
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchValue.trim()) {
+      router.push(`/productos?q=${encodeURIComponent(searchValue.trim())}`);
+      setSearchValue("");
+    }
+  };
+
   return (
     <>
+      {/* ===== Top Bar ===== */}
       <div className="top-bar">
         <div className="page-shell top-bar__inner">
-          <span className="top-bar__tagline">
-            Distribuyendo soluciones desde 1981
-          </span>
-          <div className="top-bar__links">
-            <a href="/contacto" className="top-bar__link">
+          <div className="top-bar__left">
+            <span className="top-bar__link">
+              <LocalShippingIcon fontSize="small" />
+              Envíos a todo Chile
+            </span>
+            <span className="top-bar__link">
+              <LocalShippingIcon fontSize="small" />
+              Envíos en 24/48 hrs
+            </span>
+          </div>
+          <div className="top-bar__right">
+            <Link href="/contacto" className="top-bar__link">
               <EmailOutlinedIcon fontSize="small" />
-              Contacto
-            </a>
-            <a href="/soporte" className="top-bar__link">
-              <SupportAgentOutlinedIcon fontSize="small" />
-              Soporte
-            </a>
-            <a href="tel:+56225495300" className="top-bar__link">
-              <PhoneOutlinedIcon fontSize="small" />
-              +56 2 2549 5300
-            </a>
+              Contáctanos
+            </Link>
+            <Link href="/perfil" className="top-bar__link">
+              <PersonOutlinedIcon fontSize="small" />
+              Mi cuenta
+            </Link>
+            <Link href="/favoritos" className="top-bar__link">
+              <FavoriteBorderIcon fontSize="small" />
+              Favoritos
+            </Link>
+            <span className="top-bar__link top-bar__cart">
+              <CartIcon onClick={() => setCartOpen(true)} />
+              Carrito (0)
+            </span>
           </div>
         </div>
       </div>
 
+      {/* ===== Main Header ===== */}
       <header className="site-header">
         <div className="page-shell site-header__inner">
           <Link href="/" className="site-header__logo">
             <div className="site-header__logo-text">
-              CUATRO RUEDAS
-              <span>Importadora</span>
+              PERFUMES VIP
+              <span>Tienda Online</span>
             </div>
           </Link>
 
-          <div className="site-header__search">
+          <form onSubmit={handleSearchSubmit} className="site-header__search">
             <input
               type="text"
-              placeholder="Buscar por código, producto, marca, vehículo..."
+              placeholder="Buscar perfumes..."
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
             />
-            <select>
-              <option>Todas las categorías</option>
-            </select>
-            <button aria-label="Buscar">
+            <button type="submit" aria-label="Buscar">
               <SearchIcon fontSize="small" />
             </button>
-          </div>
+          </form>
 
           <div className="site-header__actions">
             {isLoading ? (
-              <Skeleton
-                variant="rectangular"
-                width={140}
-                height={40}
-                sx={{ borderRadius: 1 }}
-              />
+              <Skeleton variant="rectangular" width={120} height={36} sx={{ borderRadius: 1 }} />
             ) : isAuthenticated ? (
               <>
-                <Link
-                  href="/perfil"
-                  className="site-header__btn site-header__btn--outline"
-                >
-                  <PersonOutlinedIcon fontSize="small" />
-                  <div>
-                    <span className="site-header__btn-label">Mi Cuenta</span>
-                    <strong>{session?.user?.name || "Perfil"}</strong>
-                  </div>
+                <Link href="/perfil" className="site-header__action-btn">
+                  <PersonOutlinedIcon />
+                  <span>{session?.user?.name || "Mi cuenta"}</span>
                 </Link>
-                <button
-                  onClick={handleLogout}
-                  className="site-header__btn site-header__btn--outline"
-                >
-                  <LogoutIcon fontSize="small" />
-                  <div>
-                    <span className="site-header__btn-label">
-                      Cerrar Sesión
-                    </span>
-                  </div>
+                <button onClick={handleLogout} className="site-header__action-btn" aria-label="Cerrar sesión">
+                  <LogoutIcon />
                 </button>
               </>
             ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="site-header__btn site-header__btn--primary"
-                >
-                  <ShoppingCartOutlinedIcon fontSize="small" />
-                  <div>
-                    <span className="site-header__btn-label">
-                      Acceso Clientes
-                    </span>
-                    <strong>Iniciar sesión</strong>
-                  </div>
-                </Link>
-              </>
+              <Link href="/login" className="site-header__action-btn site-header__action-btn--login">
+                <PersonOutlinedIcon />
+                <span>Iniciar sesión</span>
+              </Link>
             )}
           </div>
         </div>
       </header>
 
-      <nav className="site-nav" aria-label="Navegación principal">
-        <div className="page-shell site-nav__inner">
-          {navigation.map((item) => {
-            const isActive =
-              item.href === "/"
-                ? pathname === item.href
-                : pathname === item.href ||
-                  pathname.startsWith(`${item.href}/`);
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="site-nav__link"
-                data-active={isActive}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+      {/* ===== Navigation ===== */}
+      <Suspense fallback={<nav className="site-nav"><div className="page-shell site-nav__inner" /></nav>}>
+        <NavLinks />
+      </Suspense>
     </>
   );
 }

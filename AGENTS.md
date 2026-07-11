@@ -89,6 +89,14 @@ const user = useAuthStore((s) => s.session?.user);
 const { session } = useAuthStore();
 ```
 
+**Cart Store Pattern:**
+- `cartStore.js` uses Zustand + persist with localStorage key `cuatro-ruedas-cart`
+- State shape: `items[]` with `{ productId, name, price, quantity, image }`
+- Actions: `addItem`, `removeItem`, `updateQuantity`, `clearCart`
+- Derived: `getTotalItems()`, `getTotalPrice()` (call as functions, not properties)
+- Persistence: only `items` array is persisted via `partialize`
+- UI components: `CartIcon` (badge with count), `CartDrawer` (slide-out panel)
+
 ### `src/lib/` — Low-Level Utilities
 
 - `fetcher.js` — HTTP wrapper around native `fetch`. Handles base URL, headers, credentials, error parsing, and the 403 forbidden handler.
@@ -310,3 +318,24 @@ pnpm lint       # Run ESLint (next lint)
 - MUI theme uses CSS variables with prefix `ps` — reference as `var(--ps-palette-*)` in custom styles.
 - `providers.jsx` wraps the app in `AppRouterCacheProvider` + `CssVarsProvider`. Do not add another theme provider.
 - The app uses `'use client'` in `providers.jsx` and `layout-client.js` — these are the client boundary entry points.
+
+## Routing & Access Control
+
+**Open routes (no authentication required):**
+- `/` — Landing page (Hero + RelevantBanner + CategoryCards)
+- `/productos` — Product catalog with search, filters, pagination
+- `/productos/[slug]` — Product detail page (future)
+- `/carrito` — Cart page (future)
+
+**Authenticated routes:**
+- `/login` — Login page
+- `/perfil` — User profile
+- `/checkout` — Checkout flow (future)
+
+**Redirects:**
+- `/catalogo` → `/productos` (legacy route, redirects automatically)
+
+**Component reusability:**
+- `ProductCard`, `CategoryCards`, `RelevantBanner`, `ProductSidebar` are fully reusable and auth-independent
+- `CartIcon` and `CartDrawer` integrate with `cartStore` for cart functionality
+- `SiteHeader` handles both authenticated and anonymous states

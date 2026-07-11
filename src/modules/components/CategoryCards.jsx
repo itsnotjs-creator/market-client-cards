@@ -1,14 +1,34 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Skeleton from "@mui/material/Skeleton";
 import { categoryService } from "../../services/category.service";
 import { API_BASE_URL } from "../../lib/fetcher";
 
+const categoryIcons = {
+  default: "🛍️",
+  hombre: "👔",
+  mujer: "👗",
+  arabe: "",
+  nicho: "⭐",
+  ofertas: "🏷️",
+  novedades: "✨",
+};
+
+function getCategoryIcon(name) {
+  const lower = name.toLowerCase();
+  if (lower.includes("hombre")) return categoryIcons.hombre;
+  if (lower.includes("mujer")) return categoryIcons.mujer;
+  if (lower.includes("arabe") || lower.includes("oriental")) return categoryIcons.arabe;
+  if (lower.includes("nicho") || lower.includes("exclusivo")) return categoryIcons.nicho;
+  if (lower.includes("oferta")) return categoryIcons.ofertas;
+  if (lower.includes("novedad")) return categoryIcons.novedades;
+  return categoryIcons.default;
+}
+
 export default function CategoryCards() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,15 +48,7 @@ export default function CategoryCards() {
   }, []);
 
   const handleCategoriaClick = (categoriaId) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("categoria", categoriaId);
     router.push(`/productos?categoria=${categoriaId}`);
-  };
-
-  const getImageUrl = (imageFile) => {
-    if (!imageFile?.url) return null;
-    if (imageFile.url.startsWith("http")) return imageFile.url;
-    return `${API_BASE_URL}${imageFile.url}`;
   };
 
   if (loading) {
@@ -46,7 +58,7 @@ export default function CategoryCards() {
           <Skeleton
             key={i}
             variant="rectangular"
-            height={180}
+            height={120}
             sx={{ borderRadius: 2 }}
           />
         ))}
@@ -57,19 +69,14 @@ export default function CategoryCards() {
   return (
     <div className="category-cards">
       {categorias.map((cat) => {
-        const imageUrl = getImageUrl(cat.imageFile);
-        const style = imageUrl
-          ? {
-              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('${imageUrl}')`,
-            }
-          : {};
+        const icon = getCategoryIcon(cat.name);
         return (
           <button
             key={cat.id}
             onClick={() => handleCategoriaClick(cat.id)}
             className="category-card"
-            style={style}
           >
+            <span className="category-card__icon">{icon}</span>
             <span className="category-card__name">{cat.name}</span>
           </button>
         );
