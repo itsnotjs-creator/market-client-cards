@@ -30,7 +30,7 @@ export default function CategoryCards() {
   const handleCategoriaClick = (categoriaId) => {
     const params = new URLSearchParams(searchParams);
     params.set("categoria", categoriaId);
-    router.push(`/catalogo?${params.toString()}`);
+    router.push(`/productos?categoria=${categoriaId}`);
   };
 
   const getImageUrl = (imageFile) => {

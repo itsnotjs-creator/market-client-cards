@@ -113,6 +113,41 @@ const { session } = useAuthStore();
 - **Parallelize independent fetches** — never await sequentially when operations are independent.
 - **Use Suspense boundaries** to stream content and avoid blocking the entire page on slow data.
 
+### Pagination
+
+The backend uses **offset-based pagination** where `offset` is the **page number (0-indexed)**, not the number of records to skip.
+
+**Request parameters:**
+- `offset`: Page number starting from 0 (page 1 → offset 0, page 2 → offset 1)
+- `take`: Number of records per page
+
+**Response structure:**
+```json
+{
+  "page": 1,
+  "pages": 5,
+  "count": 100,
+  "take": 20,
+  "data": [...]
+}
+```
+
+**Example:**
+```js
+// In page component
+const currentPage = parseInt(searchParams.get("page") || "1", 10);
+
+const params = {
+  offset: currentPage - 1,  // Convert 1-indexed page to 0-indexed offset
+  take: 20,
+};
+
+const response = await productService.getProducts(params);
+// Use response.page, response.pages, response.count for UI
+```
+
+**Important:** Do NOT send `page` as a parameter. The backend calculates the page internally from `offset` and returns it in the response.
+
 ### Forms (react-hook-form + Zod)
 
 ```jsx
