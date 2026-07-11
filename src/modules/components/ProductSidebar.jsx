@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Skeleton from "@mui/material/Skeleton";
 import { categoryService } from "../../services/category.service";
+import { useConfigStore } from "../../store/configStore";
 
 export default function ProductSidebar() {
   const router = useRouter();
@@ -11,11 +12,12 @@ export default function ProductSidebar() {
   const activeCategoryId = searchParams.get("categoria");
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const limit = useConfigStore((state) => state.settings.featuredCategoriesLimit) || 6;
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const data = await categoryService.getMenuCategories();
+        const data = await categoryService.getMenuCategories({ take: limit });
         setCategories(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Error loading categories:", error);

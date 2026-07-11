@@ -6,6 +6,7 @@ import Skeleton from "@mui/material/Skeleton";
 import Pagination from "@mui/material/Pagination";
 import SearchIcon from "@mui/icons-material/Search";
 import { productService } from "../../services/product.service";
+import { useConfigStore } from "../../store/configStore";
 import RelevantBanner from "../../modules/components/RelevantBanner";
 import ProductSidebar from "../../modules/components/ProductSidebar";
 import ProductCard from "../../modules/components/ProductCard";
@@ -26,6 +27,8 @@ function ProductosContent() {
   const [searchValue, setSearchValue] = useState("");
   const [pagination, setPagination] = useState({ ...basePaginate });
 
+  const take = useConfigStore((state) => state.settings.productListItemsLimit) || 12;
+
   const categoryId = searchParams.get("categoria");
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
   const searchQuery = searchParams.get("q") || "";
@@ -35,7 +38,7 @@ function ProductosContent() {
     try {
       const params = {
         offset: currentPage - 1,
-        take: 20,
+        take,
       };
       if (categoryId) params.categoryId = categoryId;
       if (searchQuery) params.name = searchQuery;

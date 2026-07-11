@@ -999,3 +999,50 @@ textarea {
     gap: 1rem;
   }
 }
+
+/* ===== Maintenance Mode ===== */
+.maintenance {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--cream);
+  padding: 2rem;
+  text-align: center;
+}
+
+.maintenance__card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 3.5rem 3rem;
+  box-shadow: var(--shadow-lg);
+  max-width: 460px;
+  width: 100%;
+}
+
+.maintenance__title {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--black);
+  margin: 0 0 1rem;
+}
+
+.maintenance__text {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin: 0 0 2rem;
+}
+
+.maintenance__badge {
+  display: inline-block;
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.15em;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--gold);
+}

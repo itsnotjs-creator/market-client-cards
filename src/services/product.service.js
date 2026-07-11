@@ -15,7 +15,11 @@ export const productService = {
     return fetchService.get(`/products/${slug}`);
   },
 
-  getRelevantProducts() {
-    return fetchService.get("/products/relevant/list");
+  getRelevantProducts(params = {}) {
+    const query = new URLSearchParams();
+    if (params.take) query.set("take", params.take);
+    if (params.offset != null) query.set("offset", params.offset);
+    const qs = query.toString();
+    return fetchService.get(`/products/relevant/list${qs ? `?${qs}` : ""}`);
   },
 };

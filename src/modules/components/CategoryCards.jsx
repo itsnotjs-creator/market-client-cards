@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Skeleton from "@mui/material/Skeleton";
 import { categoryService } from "../../services/category.service";
+import { useConfigStore } from "../../store/configStore";
 import { API_BASE_URL } from "../../lib/fetcher";
 
 const categoryIcons = {
@@ -31,11 +32,12 @@ export default function CategoryCards() {
   const router = useRouter();
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
+  const limit = useConfigStore((state) => state.settings.featuredCategoriesLimit) || 6;
 
   useEffect(() => {
     const fetchCategorias = async () => {
       try {
-        const data = await categoryService.getMenuCategories();
+        const data = await categoryService.getMenuCategories({ take: limit });
         setCategorias(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Error cargando categorías:", error);

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Skeleton from "@mui/material/Skeleton";
 import { productService } from "../../services/product.service";
+import { useConfigStore } from "../../store/configStore";
 import { API_BASE_URL } from "../../lib/fetcher";
 
 function getProductImage(files = []) {
@@ -33,11 +34,15 @@ function formatPrice(value) {
 export default function RelevantBanner() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const bannerLimit = useConfigStore((state) => state.settings.bannerItemsLimit) || 5;
 
   useEffect(() => {
     const fetchRelevant = async () => {
       try {
-        const data = await productService.getRelevantProducts();
+        const data = await productService.getRelevantProducts({
+          offset: 0,
+          take: bannerLimit,
+        });
         const products = Array.isArray(data?.data) ? data.data : [];
         const filtered = products.filter((p) => p.status !== "ARCHIVED" || p.relevantOrder);
         setProducts(filtered.length > 0 ? filtered : products);
