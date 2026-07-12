@@ -28,6 +28,12 @@ function getCategoryIcon(name) {
   return categoryIcons.default;
 }
 
+function getImageUrl(imageFile) {
+  if (!imageFile?.url) return null;
+  if (imageFile.url.startsWith("http")) return imageFile.url;
+  return `${API_BASE_URL}${imageFile.url}`;
+}
+
 export default function CategoryCards() {
   const router = useRouter();
   const [categorias, setCategorias] = useState([]);
@@ -71,15 +77,36 @@ export default function CategoryCards() {
   return (
     <div className="category-cards">
       {categorias.map((cat) => {
+        const imageUrl = getImageUrl(cat.imageFile);
         const icon = getCategoryIcon(cat.name);
+
         return (
           <button
             key={cat.id}
             onClick={() => handleCategoriaClick(cat.id)}
             className="category-card"
+            style={
+              imageUrl
+                ? {
+                    backgroundImage: `linear-gradient(rgba(11, 11, 11, 0.35), rgba(11, 11, 11, 0.35)), url('${imageUrl}')`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    minHeight: "140px",
+                    justifyContent: "flex-end",
+                  }
+                : {}
+            }
           >
-            <span className="category-card__icon">{icon}</span>
-            <span className="category-card__name">{cat.name}</span>
+            {imageUrl ? (
+              <span className="category-card__name category-card__name--on-image">
+                {cat.name}
+              </span>
+            ) : (
+              <>
+                <span className="category-card__icon">{icon}</span>
+                <span className="category-card__name">{cat.name}</span>
+              </>
+            )}
           </button>
         );
       })}
