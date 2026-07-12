@@ -237,6 +237,11 @@ export default function CartPage() {
       return;
     }
 
+    if (items.length === 0) {
+      setShippingRate(null);
+      return;
+    }
+
     let cancelled = false;
     setLoadingShippingRate(true);
 
@@ -247,13 +252,10 @@ export default function CartPage() {
         codigoCiudadDestino: destination.codigoCiudad,
         codigoAgenciaDestino: 0,
         codigoAgenciaOrigen: 0,
-        alto: 9,
-        ancho: 8,
-        largo: 8,
-        kilos: 0.6,
         cuentaCorriente: "",
         cuentaCorrienteDV: "",
         rutCliente: buyerRut.replace(/[^0-9]/g, ""),
+        productsIds: items.map((item) => ({ [item.productId]: item.quantity })),
       })
       .then((response) => {
         if (!cancelled) setShippingRate(response?.listaTarifas?.[0] || null);
@@ -271,7 +273,7 @@ export default function CartPage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedComuna, buyerRut, courierCities]);
+  }, [selectedComuna, buyerRut, courierCities, items]);
 
   const handlePaymentChange = (panel) => (event, isExpanded) => {
     setPaymentExpanded(isExpanded ? panel : false);
