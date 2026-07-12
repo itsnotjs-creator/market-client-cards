@@ -9,6 +9,7 @@ import CreditCardIcon from "@mui/icons-material/CreditCard";
 import SupportIcon from "@mui/icons-material/Support";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CategoryCards from "./CategoryCards";
+import NovedadesSection from "./NovedadesSection";
 import ProductCard from "./ProductCard";
 import { productService } from "../../services/product.service";
 import { useConfigStore } from "../../store/configStore";
@@ -92,6 +93,9 @@ export default function Hero() {
           <CategoryCards />
         </div>
       </section>
+
+      {/* ===== Novedades Section ===== */}
+      <NovedadesSection />
 
       {/* ===== Featured Products Section ===== */}
       <section className="featured-section">
