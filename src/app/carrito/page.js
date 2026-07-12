@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -79,13 +79,8 @@ export default function CartPage() {
   const [shippingExpanded, setShippingExpanded] = useState(false);
   const [checkingStock, setCheckingStock] = useState(true);
 
-  const stockCheckedRef = useRef(false);
-
   // Auto stock check on mount
   useEffect(() => {
-    if (stockCheckedRef.current) return;
-    stockCheckedRef.current = true;
-
     const skuIds = items
       .map((item) => item.skuId)
       .filter(Boolean);
