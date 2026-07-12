@@ -1,16 +1,14 @@
 import Hero from '../modules/components/Hero';
-import RelevantBanner from '../modules/components/RelevantBanner';
 
 export const metadata = {
   title: 'Inicio',
-  description: 'Importadora Cuatro Ruedas - Distribuyendo soluciones automotrices desde 1981',
+  description: 'Perfumes VIP - Perfumes 100% originales. Envíos a todo Chile.',
 };
 
 export default function HomePage() {
   return (
     <main>
       <Hero />
-      <RelevantBanner />
     </main>
   );
 }

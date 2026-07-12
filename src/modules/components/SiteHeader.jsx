@@ -12,7 +12,6 @@ import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import Skeleton from "@mui/material/Skeleton";
 import { useAuthStore, SESSION_STATUS } from "../../store/authStore";
 import CartIcon from "./CartIcon";
-import CartDrawer from "./CartDrawer";
 
 const navigation = [
   { href: "/", label: "Inicio" },
@@ -68,7 +67,6 @@ export default function SiteHeader() {
   const session = useAuthStore((state) => state.session);
   const status = useAuthStore((state) => state.status);
   const logout = useAuthStore((state) => state.logout);
-  const [cartOpen, setCartOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
 
   const isLoading = status === SESSION_STATUS.IDLE || status === SESSION_STATUS.CHECKING;
@@ -117,8 +115,7 @@ export default function SiteHeader() {
               Favoritos
             </Link>
             <span className="top-bar__link top-bar__cart">
-              <CartIcon onClick={() => setCartOpen(true)} />
-              Carrito (0)
+              <CartIcon />
             </span>
           </div>
         </div>
@@ -147,6 +144,8 @@ export default function SiteHeader() {
           </form>
 
           <div className="site-header__actions">
+            <CartIcon />
+
             {isLoading ? (
               <Skeleton variant="rectangular" width={120} height={36} sx={{ borderRadius: 1 }} />
             ) : isAuthenticated ? (
@@ -168,8 +167,6 @@ export default function SiteHeader() {
           </div>
         </div>
       </header>
-
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
 
       {/* ===== Navigation ===== */}
       <Suspense fallback={<nav className="site-nav"><div className="page-shell site-nav__inner" /></nav>}>

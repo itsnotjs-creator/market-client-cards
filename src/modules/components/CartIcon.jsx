@@ -1,23 +1,34 @@
 "use client";
 
-import IconButton from "@mui/material/IconButton";
+import Link from "next/link";
 import Badge from "@mui/material/Badge";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import { useCartStore } from "../../store/cartStore";
 
-export default function CartIcon({ onClick }) {
+export default function CartIcon() {
   const totalItems = useCartStore((state) => state.getTotalItems());
 
   return (
-    <IconButton
-      onClick={onClick}
+    <Link
+      href="/carrito"
+      className="site-header__action-btn"
       aria-label="Carrito de compras"
-      size="large"
-      color="inherit"
     >
-      <Badge badgeContent={totalItems} color="error" invisible={totalItems === 0}>
+      <Badge
+        badgeContent={totalItems}
+        color="error"
+        invisible={totalItems === 0}
+        sx={{
+          "& .MuiBadge-badge": {
+            fontSize: "0.65rem",
+            height: 16,
+            minWidth: 16,
+          },
+        }}
+      >
         <ShoppingCartOutlinedIcon />
       </Badge>
-    </IconButton>
+      <span>Carrito</span>
+    </Link>
   );
 }

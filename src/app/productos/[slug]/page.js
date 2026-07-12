@@ -108,19 +108,22 @@ export default function ProductDetailPage() {
   const price = getLowestPrice(product?.skus || []);
 
   const handleAddToCart = () => {
-    if (!product || !selectedSku) return;
+    if (!product) return;
     addItem({
       productId: product.id,
+      slug: product.slug,
       name: product.name,
-      price: selectedSku.price || price?.current || 0,
+      price: selectedSku?.price || price?.current || 0,
       quantity,
       image: images[0]?.url || null,
+      skuId: selectedSku?.id || null,
+      skuName: selectedSku?.name || null,
     });
   };
 
   const handleBuyNow = () => {
     handleAddToCart();
-    router.push("/checkout");
+    router.push("/carrito");
   };
 
   const handleKeyDown = useCallback((e) => {

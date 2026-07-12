@@ -26,6 +26,8 @@ export default function SiteFooter() {
             <Link href="/empresa">Sobre nosotros</Link>
             <Link href="/perfil">Mi cuenta</Link>
             <Link href="/login">Iniciar sesión</Link>
+            <Link href="/terminos-y-condiciones">Términos y Condiciones</Link>
+            <Link href="/politica-reembolsos">Política de Reembolsos</Link>
           </div>
 
           <div className="footer__col">
