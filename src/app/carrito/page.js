@@ -17,6 +17,7 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import { useCartStore } from "../../store/cartStore";
 import { showError, showSuccess, showWarning } from "../../lib/errorHandler";
 import { stockService } from "../../services/stock.service";
+import { couriersService } from "../../services/couriers.service";
 import { API_BASE_URL } from "../../lib/fetcher";
 import "./carrito.css";
 
@@ -78,6 +79,10 @@ export default function CartPage() {
   const [paymentExpanded, setPaymentExpanded] = useState(false);
   const [shippingExpanded, setShippingExpanded] = useState(false);
   const [checkingStock, setCheckingStock] = useState(true);
+  const [courierCities, setCourierCities] = useState([]);
+  const [loadingCourierCities, setLoadingCourierCities] = useState(true);
+  const [shippingRate, setShippingRate] = useState(null);
+  const [loadingShippingRate, setLoadingShippingRate] = useState(false);
 
   // Auto stock check on mount
   useEffect(() => {
@@ -171,6 +176,7 @@ export default function CartPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(checkoutSchema),
@@ -185,6 +191,87 @@ export default function CartPage() {
       courier: "starken",
     },
   });
+
+  const selectedComuna = watch("comuna");
+  const buyerRut = watch("rut");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    couriersService
+      .getCities()
+      .then((response) => {
+        if (cancelled) return;
+        setCourierCities(response?.listaCiudadesOrigen || []);
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          console.error("Courier cities request failed:", error);
+          showError("No se pudieron cargar las comunas", "Intenta nuevamente en unos minutos.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingCourierCities(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const courierCommunes = courierCities.flatMap((city) =>
+    (city.listaComunas || []).map((comuna) => ({
+      ...comuna,
+      codigoCiudad: city.codigoCiudad,
+      nombreCiudad: city.nombreCiudad,
+    }))
+  );
+
+  useEffect(() => {
+    const destination = courierCommunes.find(
+      (comuna) => String(comuna.codigoComuna) === String(selectedComuna)
+    );
+
+    if (!destination || !buyerRut || buyerRut.replace(/[^0-9]/g, "").length < 8) {
+      setShippingRate(null);
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingShippingRate(true);
+
+    couriersService
+      .getRates({
+        type: "STARKEN",
+        codigoCiudadOrigen: 1,
+        codigoCiudadDestino: destination.codigoCiudad,
+        codigoAgenciaDestino: 0,
+        codigoAgenciaOrigen: 0,
+        alto: 9,
+        ancho: 8,
+        largo: 8,
+        kilos: 0.6,
+        cuentaCorriente: "",
+        cuentaCorrienteDV: "",
+        rutCliente: buyerRut.replace(/[^0-9]/g, ""),
+      })
+      .then((response) => {
+        if (!cancelled) setShippingRate(response?.listaTarifas?.[0] || null);
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          console.error("Courier rate request failed:", error);
+          setShippingRate(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingShippingRate(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedComuna, buyerRut, courierCities]);
 
   const handlePaymentChange = (panel) => (event, isExpanded) => {
     setPaymentExpanded(isExpanded ? panel : false);
@@ -453,13 +540,24 @@ export default function CartPage() {
                     </div>
                     <div className="cart-shipping__field">
                       <label htmlFor="comuna">Comuna</label>
-                      <input
+                      <select
                         id="comuna"
-                        type="text"
-                        placeholder="Comuna"
+                        disabled={loadingCourierCities}
                         className={errors.comuna ? "has-error" : ""}
                         {...register("comuna")}
-                      />
+                      >
+                        <option value="">
+                          {loadingCourierCities ? "Cargando comunas..." : "Selecciona una comuna"}
+                        </option>
+                        {courierCommunes.map((comuna) => (
+                          <option
+                            key={comuna.codigoComuna}
+                            value={comuna.codigoComuna}
+                          >
+                            {comuna.nombreComuna} ({comuna.nombreCiudad})
+                          </option>
+                        ))}
+                      </select>
                       {errors.comuna && (
                         <span className="field-error">{errors.comuna.message}</span>
                       )}
@@ -516,9 +614,18 @@ export default function CartPage() {
               <span>{formatPrice(totalPrice)}</span>
             </div>
             <div className="cart-summary__row">
-              <span>Envío</span>
-              <span className="cart-summary__shipping">A calcular</span>
+              <span>Envío (cobro a destino)</span>
+              <span className="cart-summary__shipping">
+                {loadingShippingRate
+                  ? "Calculando..."
+                  : shippingRate?.costoTotal
+                    ? "Aprox. " + formatPrice(shippingRate.costoTotal)
+                    : "Cobro a destino"}
+              </span>
             </div>
+            <p className="cart-summary__shipping-note">
+              El valor mostrado es aproximado. Starken cobrará el envío al recibirlo.
+            </p>
             <div className="cart-summary__divider" />
             <div className="cart-summary__row cart-summary__row--total">
               <span>Total</span>

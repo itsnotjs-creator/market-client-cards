@@ -458,6 +458,13 @@
   font-size: 0.78rem;
 }
 
+.cart-summary__shipping-note {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  margin: -0.35rem 0 1rem;
+}
+
 .cart-summary__divider {
   border-top: 1px solid var(--border);
   margin: 0.75rem 0;
