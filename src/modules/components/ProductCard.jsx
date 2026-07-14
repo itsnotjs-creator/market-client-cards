@@ -16,7 +16,7 @@ function getLowestPrice(skus = []) {
   if (validSkus.length === 0) return null;
 
   const lowest = validSkus.reduce((min, sku) =>
-    sku.price < min.price ? sku : min
+    sku.price < min.price ? sku : min,
   );
 
   const comparisons = validSkus
