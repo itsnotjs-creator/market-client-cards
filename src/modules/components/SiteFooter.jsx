@@ -1,6 +1,6 @@
-import Link from 'next/link';
-import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined';
-import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
+import Link from "next/link";
+import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
+import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 
 export default function SiteFooter() {
   return (
@@ -9,7 +9,10 @@ export default function SiteFooter() {
         <div className="footer__grid">
           <div className="footer__col">
             <h4>PERFUMES VIP</h4>
-            <p>Tu tienda de confianza en perfumes 100% originales. Las mejores marcas a los mejores precios, con envíos a todo Chile.</p>
+            <p>
+              Tu tienda de confianza en perfumes 100% originales. Las mejores
+              marcas a los mejores precios, con envíos a todo Chile.
+            </p>
           </div>
 
           <div className="footer__col">
@@ -32,13 +35,13 @@ export default function SiteFooter() {
 
           <div className="footer__col">
             <h4>Contacto</h4>
-            <p style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <p style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
               <PhoneOutlinedIcon fontSize="small" />
               +56 2 2549 5300
             </p>
-            <p style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <p style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
               <EmailOutlinedIcon fontSize="small" />
-              ventas@perfumesvip.cl
+              contact@perfumesvip.cl.cl
             </p>
             <Link href="/contacto" className="footer__gold-link">
               Formulario de contacto →
@@ -47,7 +50,8 @@ export default function SiteFooter() {
         </div>
 
         <div className="footer__bottom">
-          © {new Date().getFullYear()} PERFUMES VIP. Todos los derechos reservados.
+          © {new Date().getFullYear()} PERFUMES VIP. Todos los derechos
+          reservados.
         </div>
       </div>
     </footer>

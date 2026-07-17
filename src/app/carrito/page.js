@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Accordion from "@mui/material/Accordion";
@@ -14,6 +14,8 @@ import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import { useCartStore } from "../../store/cartStore";
 import { showError, showSuccess, showWarning } from "../../lib/errorHandler";
 import { stockService } from "../../services/stock.service";
@@ -41,14 +43,31 @@ const regiones = [
 ];
 
 const checkoutSchema = z.object({
-  fullName: z.string().min(3, "El nombre completo es requerido"),
-  rut: z.string().min(8, "El RUT es requerido"),
-  email: z.string().email("El correo electrónico es inválido"),
-  phone: z.string().min(8, "El teléfono es requerido"),
-  address: z.string().min(5, "La dirección es requerida"),
-  comuna: z.string().min(2, "La comuna es requerida"),
+  fullName: z.string().min(1, "El nombre completo es requerido"),
+  rut: z.string().min(1, "El RUT es requerido"),
+  email: z.string().min(1, "El correo electrónico es requerido").email("El correo electrónico es inválido"),
+  phone: z.string().min(1, "El teléfono es requerido"),
+  address: z.string().min(1, "La dirección es requerida"),
+  comuna: z.string().min(1, "La comuna es requerida"),
   region: z.string().min(1, "La región es requerida"),
   courier: z.string().min(1, "Selecciona un courier"),
+  createAccount: z.boolean().default(false),
+  password: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.createAccount) {
+    const hasMinLength = data.password && data.password.length >= 8;
+    const hasUppercase = /[A-Z]/.test(data.password);
+    const hasLowercase = /[a-z]/.test(data.password);
+    const hasNumber = /\d/.test(data.password);
+
+    if (!hasMinLength || !hasUppercase || !hasLowercase || !hasNumber) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número",
+        path: ["password"],
+      });
+    }
+  }
 });
 
 function formatPrice(value) {
@@ -177,6 +196,7 @@ export default function CartPage() {
     register,
     handleSubmit,
     watch,
+    control,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(checkoutSchema),
@@ -189,11 +209,14 @@ export default function CartPage() {
       comuna: "",
       region: "",
       courier: "starken",
+      createAccount: false,
+      password: "",
     },
   });
 
   const selectedComuna = watch("comuna");
   const buyerRut = watch("rut");
+  const createAccount = watch("createAccount");
 
   useEffect(() => {
     let cancelled = false;
@@ -522,6 +545,42 @@ export default function CartPage() {
                         <span className="field-error">{errors.phone.message}</span>
                       )}
                     </div>
+
+                    <div className="cart-shipping__field cart-shipping__field--full">
+                      <Controller
+                        name="createAccount"
+                        control={control}
+                        render={({ field }) => (
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={field.value || false}
+                                onChange={(e) => field.onChange(e.target.checked)}
+                                onBlur={field.onBlur}
+                                ref={field.ref}
+                              />
+                            }
+                            label="Registrarme para seguir mis compras"
+                          />
+                        )}
+                      />
+                    </div>
+
+                    {createAccount && (
+                      <div className="cart-shipping__field">
+                        <label htmlFor="password">Contraseña</label>
+                        <input
+                          id="password"
+                          type="password"
+                          placeholder="Mínimo 8 caracteres, una mayúscula, una minúscula y un número"
+                          className={errors.password ? "has-error" : ""}
+                          {...register("password")}
+                        />
+                        {errors.password && (
+                          <span className="field-error">{errors.password.message}</span>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Shipping address */}
