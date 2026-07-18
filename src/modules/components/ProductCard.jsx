@@ -44,13 +44,24 @@ function formatPrice(value) {
   }).format(value);
 }
 
+function getDiscountPercentage(price) {
+  if (!price || price.current == null || price.comparison == null) return null;
+  if (price.current >= price.comparison) return null;
+
+  return Math.round((1 - price.current / price.comparison) * 100);
+}
+
 export default function ProductCard({ product }) {
   const imageUrl = getProductImage(product.files);
   const price = getLowestPrice(product.skus);
+  const discount = getDiscountPercentage(price);
 
   return (
     <Link href={`/productos/${product.slug}`} className="product-card">
       <div className="product-card__img-wrapper">
+        {discount != null && (
+          <span className="product-card__badge">−{discount}%</span>
+        )}
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -65,11 +76,6 @@ export default function ProductCard({ product }) {
         <h3 className="product-card__name">{product.name}</h3>
         {price && (
           <div className="product-card__prices">
-            {price.comparison && (
-              <span className="product-card__price-comparison">
-                {formatPrice(price.comparison)}
-              </span>
-            )}
             {price.current != null && (
               <span className="product-card__price-current">
                 {formatPrice(price.current)}

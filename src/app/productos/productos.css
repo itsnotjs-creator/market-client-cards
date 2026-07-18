@@ -357,6 +357,7 @@
 }
 
 .product-card__img-wrapper {
+  position: relative;
   aspect-ratio: 1;
   overflow: hidden;
   background: var(--gray-100);
@@ -411,10 +412,20 @@
   margin-top: auto;
 }
 
-.product-card__price-comparison {
+.product-card__badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 2;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--ps-palette-error-main);
+  color: var(--white);
   font-size: 0.75rem;
-  color: var(--ps-palette-error-main);
-  text-decoration: line-through;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .product-card__price-current {
