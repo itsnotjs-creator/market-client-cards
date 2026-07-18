@@ -28,6 +28,6 @@ export const productService = {
     if (params.take) query.set("take", params.take);
     if (params.offset != null) query.set("offset", params.offset);
     const qs = query.toString();
-    return fetchService.get(`/catalog/new-arrivals${qs ? `?${qs}` : ""}`);
+    return fetchService.get(`/catalog/products/new-arrivals${qs ? `?${qs}` : ""}`);
   },
 };

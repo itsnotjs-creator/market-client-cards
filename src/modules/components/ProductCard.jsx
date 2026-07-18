@@ -3,8 +3,8 @@ import { API_BASE_URL } from "../../lib/fetcher";
 
 function getProductImage(files = []) {
   const mainFile = files.find((f) => f.isMain) || files[0];
-  if (!mainFile?.file?.url) return null;
-  const url = mainFile.file.url;
+  const url = mainFile?.file?.url || mainFile?.url;
+  if (!url) return null;
   if (url.startsWith("http")) return url;
   return `${API_BASE_URL}${url}`;
 }
@@ -12,22 +12,26 @@ function getProductImage(files = []) {
 function getLowestPrice(skus = []) {
   if (!Array.isArray(skus) || skus.length === 0) return null;
 
-  const validSkus = skus.filter((sku) => sku.price != null);
+  const validSkus = skus
+    .filter((sku) => sku.price != null)
+    .map((sku) => ({
+      price: Number(sku.price),
+      compareAt:
+        sku.compareAtPrice != null ? Number(sku.compareAtPrice) : null,
+    }))
+    .filter((sku) => Number.isFinite(sku.price));
+
   if (validSkus.length === 0) return null;
 
   const lowest = validSkus.reduce((min, sku) =>
     sku.price < min.price ? sku : min,
   );
 
-  const comparisons = validSkus
-    .map((sku) => sku.comparePrice)
-    .filter((p) => p != null);
-  const highestComparison =
-    comparisons.length > 0 ? Math.max(...comparisons) : null;
+  const hasOffer = lowest.compareAt != null && lowest.compareAt > lowest.price;
 
   return {
     current: lowest.price,
-    comparison: highestComparison,
+    comparison: hasOffer ? lowest.compareAt : null,
   };
 }
 

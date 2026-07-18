@@ -413,7 +413,7 @@
 
 .product-card__price-comparison {
   font-size: 0.75rem;
-  color: var(--gray-500);
+  color: var(--ps-palette-error-main);
   text-decoration: line-through;
 }
 
