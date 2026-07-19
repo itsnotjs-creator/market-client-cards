@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
@@ -18,9 +17,8 @@ import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import { useCartStore } from "../../store/cartStore";
 import { showError, showSuccess, showWarning } from "../../lib/errorHandler";
-import { stockService } from "../../services/stock.service";
-import { couriersService } from "../../services/couriers.service";
 import { API_BASE_URL } from "../../lib/fetcher";
+import { checkoutSchema } from "../../lib/validation/checkoutValidation";
 import "./carrito.css";
 
 const regiones = [
@@ -42,34 +40,6 @@ const regiones = [
   "Magallanes",
 ];
 
-const checkoutSchema = z.object({
-  fullName: z.string().min(1, "El nombre completo es requerido"),
-  rut: z.string().min(1, "El RUT es requerido"),
-  email: z.string().min(1, "El correo electrónico es requerido").email("El correo electrónico es inválido"),
-  phone: z.string().min(1, "El teléfono es requerido"),
-  address: z.string().min(1, "La dirección es requerida"),
-  comuna: z.string().min(1, "La comuna es requerida"),
-  region: z.string().min(1, "La región es requerida"),
-  courier: z.string().min(1, "Selecciona un courier"),
-  createAccount: z.boolean().default(false),
-  password: z.string().optional(),
-}).superRefine((data, ctx) => {
-  if (data.createAccount) {
-    const hasMinLength = data.password && data.password.length >= 8;
-    const hasUppercase = /[A-Z]/.test(data.password);
-    const hasLowercase = /[a-z]/.test(data.password);
-    const hasNumber = /\d/.test(data.password);
-
-    if (!hasMinLength || !hasUppercase || !hasLowercase || !hasNumber) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número",
-        path: ["password"],
-      });
-    }
-  }
-});
-
 function formatPrice(value) {
   if (value == null) return null;
   return new Intl.NumberFormat("es-CL", {
@@ -89,106 +59,33 @@ export default function CartPage() {
   const items = useCartStore((state) => state.items);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
-  const removeItems = useCartStore((state) => state.removeItems);
-  const setQuantity = useCartStore((state) => state.setQuantity);
   const clearCart = useCartStore((state) => state.clearCart);
   const totalItems = useCartStore((state) => state.getTotalItems());
   const totalPrice = useCartStore((state) => state.getTotalPrice());
 
   const [paymentExpanded, setPaymentExpanded] = useState(false);
   const [shippingExpanded, setShippingExpanded] = useState(false);
-  const [checkingStock, setCheckingStock] = useState(true);
-  const [courierCities, setCourierCities] = useState([]);
-  const [loadingCourierCities, setLoadingCourierCities] = useState(true);
-  const [shippingRate, setShippingRate] = useState(null);
-  const [loadingShippingRate, setLoadingShippingRate] = useState(false);
+  const checkStock = useCartStore((state) => state.checkStock);
+  const loadCourierCities = useCartStore((state) => state.loadCourierCities);
+  const loadShippingRate = useCartStore((state) => state.loadShippingRate);
+  const resetShippingRate = useCartStore((state) => state.resetShippingRate);
+  const stockCheckStatus = useCartStore((state) => state.stockCheckStatus);
+  const courierCities = useCartStore((state) => state.courierCities);
+  const courierCitiesStatus = useCartStore((state) => state.courierCitiesStatus);
+  const shippingRate = useCartStore((state) => state.shippingRate);
+  const shippingRateStatus = useCartStore((state) => state.shippingRateStatus);
 
-  // Auto stock check on mount
   useEffect(() => {
-    const skuIds = items
-      .map((item) => item.skuId)
-      .filter(Boolean);
-
-    if (skuIds.length === 0) {
-      setCheckingStock(false);
-      return;
-    }
-
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const availability = await stockService.checkAvailability(skuIds);
-
-        if (cancelled) return;
-
-        const zeroStockItems = [];
-        const adjustedItems = [];
-
-        for (const item of items) {
-          if (!item.skuId) continue;
-          const available = availability[item.skuId];
-
-          if (available === 0) {
-            zeroStockItems.push(item);
-          } else if (available < item.quantity) {
-            adjustedItems.push({ ...item, newQuantity: available });
-          }
-        }
-
-        // Remove items with 0 stock
-        if (zeroStockItems.length > 0) {
-          removeItems(zeroStockItems);
-        }
-
-        // Adjust quantities for items with insufficient stock
-        for (const item of adjustedItems) {
-          setQuantity(item.productId, item.skuId, item.newQuantity);
-        }
-
-        // Build alert message
-        if (zeroStockItems.length > 0 && adjustedItems.length > 0) {
-          const removedNames = zeroStockItems
-            .map((i) => i.skuName ? `${i.name} (${i.skuName})` : i.name)
-            .join(", ");
-          const adjustedNames = adjustedItems
-            .map((i) => i.skuName ? `${i.name} (${i.skuName})` : i.name)
-            .join(", ");
-          showWarning(
-            `Sin stock: ${removedNames}. Cantidad ajustada: ${adjustedNames}.`,
-            "Inventario actualizado"
-          );
-        } else if (zeroStockItems.length > 0) {
-          const removedNames = zeroStockItems
-            .map((i) => i.skuName ? `${i.name} (${i.skuName})` : i.name)
-            .join(", ");
-          showWarning(
-            `Sin stock, removidos del carrito: ${removedNames}.`,
-            "Inventario actualizado"
-          );
-        } else if (adjustedItems.length > 0) {
-          const adjustedNames = adjustedItems
-            .map((i) => i.skuName ? `${i.name} (${i.skuName})` : i.name)
-            .join(", ");
-          showWarning(
-            `Cantidad ajustada por stock disponible: ${adjustedNames}.`,
-            "Inventario actualizado"
-          );
-        }
-      } catch (error) {
-        if (!cancelled) {
-          console.error("Stock check failed:", error);
-        }
-      } finally {
-        if (!cancelled) {
-          setCheckingStock(false);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+    void checkStock().then(({ zeroStockItems, adjustedItems }) => {
+      const name = (item) => item.skuName ? item.name + " (" + item.skuName + ")" : item.name;
+      const removed = zeroStockItems.map(name).join(", ");
+      const adjusted = adjustedItems.map(name).join(", ");
+      if (removed && adjusted) showWarning("Sin stock: " + removed + ". Cantidad ajustada: " + adjusted + ".", "Inventario actualizado");
+      else if (removed) showWarning("Sin stock, removidos del carrito: " + removed + ".", "Inventario actualizado");
+      else if (adjusted) showWarning("Cantidad ajustada por stock disponible: " + adjusted + ".", "Inventario actualizado");
+    }).catch(() => showError("No se pudo verificar el stock", "Intenta nuevamente."));
+    void loadCourierCities().catch(() => showError("No se pudieron cargar las comunas", "Intenta nuevamente en unos minutos."));
+    // Store actions own the async lifecycle; this effect only starts initialization once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -218,85 +115,24 @@ export default function CartPage() {
   const buyerRut = watch("rut");
   const createAccount = watch("createAccount");
 
-  useEffect(() => {
-    let cancelled = false;
-
-    couriersService
-      .getCities()
-      .then((response) => {
-        if (cancelled) return;
-        setCourierCities(response?.listaCiudadesOrigen || []);
-      })
-      .catch((error) => {
-        if (!cancelled) {
-          console.error("Courier cities request failed:", error);
-          showError("No se pudieron cargar las comunas", "Intenta nuevamente en unos minutos.");
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingCourierCities(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   const courierCommunes = courierCities.flatMap((city) =>
     (city.listaComunas || []).map((comuna) => ({
       ...comuna,
       codigoCiudad: city.codigoCiudad,
       nombreCiudad: city.nombreCiudad,
-    }))
+    })),
   );
 
   useEffect(() => {
-    const destination = courierCommunes.find(
-      (comuna) => String(comuna.codigoComuna) === String(selectedComuna)
-    );
-
-    if (!destination || !buyerRut || buyerRut.replace(/[^0-9]/g, "").length < 8) {
-      setShippingRate(null);
+    const destination = courierCommunes.find((comuna) => String(comuna.codigoComuna) === String(selectedComuna));
+    if (!destination || !buyerRut || items.length === 0) {
+      resetShippingRate();
       return;
     }
-
-    if (items.length === 0) {
-      setShippingRate(null);
-      return;
-    }
-
-    let cancelled = false;
-    setLoadingShippingRate(true);
-
-    couriersService
-      .getRates({
-        type: "STARKEN",
-        codigoCiudadOrigen: 1,
-        codigoCiudadDestino: destination.codigoCiudad,
-        codigoAgenciaDestino: 0,
-        codigoAgenciaOrigen: 0,
-        cuentaCorriente: "",
-        cuentaCorrienteDV: "",
-        rutCliente: buyerRut.replace(/[^0-9]/g, ""),
-        productsIds: items.map((item) => ({ [item.productId]: item.quantity })),
-      })
-      .then((response) => {
-        if (!cancelled) setShippingRate(response?.listaTarifas?.[0] || null);
-      })
-      .catch((error) => {
-        if (!cancelled) {
-          console.error("Courier rate request failed:", error);
-          setShippingRate(null);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingShippingRate(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedComuna, buyerRut, courierCities, items]);
+    void loadShippingRate({ destination, buyerRut }).catch(() => {
+      showError("No se pudo calcular el envío", "Verifica los datos e intenta nuevamente.");
+    });
+  }, [selectedComuna, buyerRut, courierCities, items, loadShippingRate, resetShippingRate]);
 
   const handlePaymentChange = (panel) => (event, isExpanded) => {
     setPaymentExpanded(isExpanded ? panel : false);
@@ -309,22 +145,30 @@ export default function CartPage() {
   const onSubmit = (data) => {
     // Mercado Pago integration pendiente
     console.log("Checkout data:", data);
-    showSuccess("Datos guardados", "Cuando integremos Mercado Pago, continuarás al pago aquí.");
+    showSuccess(
+      "Datos guardados",
+      "Cuando integremos Mercado Pago, continuarás al pago aquí.",
+    );
   };
 
   const onError = () => {
     // Expand the shipping accordion so errors are visible
     setShippingExpanded("shipping");
-    showError("Faltan datos", "Completa los datos del comprador y envío antes de continuar.");
+    showError(
+      "Faltan datos",
+      "Completa los datos del comprador y envío antes de continuar.",
+    );
   };
 
-  if (checkingStock) {
+  if (stockCheckStatus === "idle" || stockCheckStatus === "checking") {
     return (
       <main className="cart-page">
         <div className="page-shell">
           <div className="cart-page__checking">
             <div className="cart-page__checking-spinner" />
-            <p className="cart-page__checking-text">Verificando stock disponible...</p>
+            <p className="cart-page__checking-text">
+              Verificando stock disponible...
+            </p>
           </div>
         </div>
       </main>
@@ -354,20 +198,29 @@ export default function CartPage() {
       <div className="page-shell">
         {/* Breadcrumb */}
         <nav className="cart-page__breadcrumbs">
-          <Link href="/" className="cart-page__breadcrumb-link">Inicio</Link>
+          <Link href="/" className="cart-page__breadcrumb-link">
+            Inicio
+          </Link>
           <span className="cart-page__breadcrumb-separator">›</span>
           <span className="cart-page__breadcrumb-current">Carrito</span>
         </nav>
 
         <h1 className="cart-page__title">Carrito de compras</h1>
-        <p className="cart-page__count">{totalItems} {totalItems === 1 ? "producto" : "productos"}</p>
+        <p className="cart-page__count">
+          {totalItems} {totalItems === 1 ? "producto" : "productos"}
+        </p>
 
-        <form onSubmit={handleSubmit(onSubmit, onError)} className="cart-page__layout">
+        <form
+          onSubmit={handleSubmit(onSubmit, onError)}
+          className="cart-page__layout"
+        >
           {/* ===== Left: Items + Accordions ===== */}
           <div className="cart-page__main">
             {/* Section 1: Product List */}
             <div className="cart-section">
-              <h2 className="cart-section__title">1. Productos en tu carrito</h2>
+              <h2 className="cart-section__title">
+                1. Productos en tu carrito
+              </h2>
               <div className="cart-items">
                 {items.map((item) => {
                   const imageUrl = getItemImage(item.image);
@@ -376,13 +229,20 @@ export default function CartPage() {
                     : item.name;
 
                   return (
-                    <div key={`${item.productId}-${item.skuId || "default"}`} className="cart-item">
+                    <div
+                      key={`${item.productId}-${item.skuId || "default"}`}
+                      className="cart-item"
+                    >
                       <Link
                         href={`/productos/${item.slug}`}
                         className="cart-item__image-link"
                       >
                         {imageUrl ? (
-                          <img src={imageUrl} alt={item.name} className="cart-item__image" />
+                          <img
+                            src={imageUrl}
+                            alt={item.name}
+                            className="cart-item__image"
+                          />
                         ) : (
                           <div className="cart-item__image-placeholder" />
                         )}
@@ -405,17 +265,31 @@ export default function CartPage() {
                           <button
                             type="button"
                             className="cart-item__qty-btn"
-                            onClick={() => updateQuantity(item.productId, item.skuId, item.quantity - 1)}
+                            onClick={() =>
+                              updateQuantity(
+                                item.productId,
+                                item.skuId,
+                                item.quantity - 1,
+                              )
+                            }
                             disabled={item.quantity <= 1}
                             aria-label="Reducir cantidad"
                           >
                             <RemoveIcon fontSize="small" />
                           </button>
-                          <span className="cart-item__qty-value">{item.quantity}</span>
+                          <span className="cart-item__qty-value">
+                            {item.quantity}
+                          </span>
                           <button
                             type="button"
                             className="cart-item__qty-btn"
-                            onClick={() => updateQuantity(item.productId, item.skuId, item.quantity + 1)}
+                            onClick={() =>
+                              updateQuantity(
+                                item.productId,
+                                item.skuId,
+                                item.quantity + 1,
+                              )
+                            }
                             aria-label="Aumentar cantidad"
                           >
                             <AddIcon fontSize="small" />
@@ -440,7 +314,11 @@ export default function CartPage() {
                 })}
               </div>
 
-              <button type="button" className="cart-section__clear" onClick={clearCart}>
+              <button
+                type="button"
+                className="cart-section__clear"
+                onClick={clearCart}
+              >
                 Vaciar carrito
               </button>
             </div>
@@ -463,12 +341,16 @@ export default function CartPage() {
                 <div className="cart-payment">
                   <div className="cart-payment__option cart-payment__option--selected">
                     <div className="cart-payment__option-info">
-                      <span className="cart-payment__option-name">Mercado Pago</span>
+                      <span className="cart-payment__option-name">
+                        Mercado Pago
+                      </span>
                       <span className="cart-payment__option-desc">
                         Paga con Mercado Pago de forma segura
                       </span>
                     </div>
-                    <span className="cart-payment__option-badge">Seleccionado</span>
+                    <span className="cart-payment__option-badge">
+                      Seleccionado
+                    </span>
                   </div>
                 </div>
               </AccordionDetails>
@@ -491,7 +373,9 @@ export default function CartPage() {
               <AccordionDetails className="cart-accordion__details">
                 <div className="cart-shipping">
                   {/* Buyer data */}
-                  <h3 className="cart-shipping__subtitle">Datos del comprador</h3>
+                  <h3 className="cart-shipping__subtitle">
+                    Datos del comprador
+                  </h3>
                   <div className="cart-shipping__grid">
                     <div className="cart-shipping__field">
                       <label htmlFor="fullName">Nombre completo</label>
@@ -503,7 +387,9 @@ export default function CartPage() {
                         {...register("fullName")}
                       />
                       {errors.fullName && (
-                        <span className="field-error">{errors.fullName.message}</span>
+                        <span className="field-error">
+                          {errors.fullName.message}
+                        </span>
                       )}
                     </div>
                     <div className="cart-shipping__field">
@@ -516,7 +402,9 @@ export default function CartPage() {
                         {...register("rut")}
                       />
                       {errors.rut && (
-                        <span className="field-error">{errors.rut.message}</span>
+                        <span className="field-error">
+                          {errors.rut.message}
+                        </span>
                       )}
                     </div>
                     <div className="cart-shipping__field">
@@ -529,7 +417,9 @@ export default function CartPage() {
                         {...register("email")}
                       />
                       {errors.email && (
-                        <span className="field-error">{errors.email.message}</span>
+                        <span className="field-error">
+                          {errors.email.message}
+                        </span>
                       )}
                     </div>
                     <div className="cart-shipping__field">
@@ -542,7 +432,9 @@ export default function CartPage() {
                         {...register("phone")}
                       />
                       {errors.phone && (
-                        <span className="field-error">{errors.phone.message}</span>
+                        <span className="field-error">
+                          {errors.phone.message}
+                        </span>
                       )}
                     </div>
 
@@ -555,7 +447,9 @@ export default function CartPage() {
                             control={
                               <Checkbox
                                 checked={field.value || false}
-                                onChange={(e) => field.onChange(e.target.checked)}
+                                onChange={(e) =>
+                                  field.onChange(e.target.checked)
+                                }
                                 onBlur={field.onBlur}
                                 ref={field.ref}
                               />
@@ -577,14 +471,18 @@ export default function CartPage() {
                           {...register("password")}
                         />
                         {errors.password && (
-                          <span className="field-error">{errors.password.message}</span>
+                          <span className="field-error">
+                            {errors.password.message}
+                          </span>
                         )}
                       </div>
                     )}
                   </div>
 
                   {/* Shipping address */}
-                  <h3 className="cart-shipping__subtitle">Dirección de envío</h3>
+                  <h3 className="cart-shipping__subtitle">
+                    Dirección de envío
+                  </h3>
                   <div className="cart-shipping__grid">
                     <div className="cart-shipping__field cart-shipping__field--full">
                       <label htmlFor="address">Dirección</label>
@@ -596,19 +494,23 @@ export default function CartPage() {
                         {...register("address")}
                       />
                       {errors.address && (
-                        <span className="field-error">{errors.address.message}</span>
+                        <span className="field-error">
+                          {errors.address.message}
+                        </span>
                       )}
                     </div>
                     <div className="cart-shipping__field">
                       <label htmlFor="comuna">Comuna</label>
                       <select
                         id="comuna"
-                        disabled={loadingCourierCities}
+                        disabled={courierCitiesStatus === "loading"}
                         className={errors.comuna ? "has-error" : ""}
                         {...register("comuna")}
                       >
                         <option value="">
-                          {loadingCourierCities ? "Cargando comunas..." : "Selecciona una comuna"}
+                          {courierCitiesStatus === "loading"
+                            ? "Cargando comunas..."
+                            : "Selecciona una comuna"}
                         </option>
                         {courierCommunes.map((comuna) => (
                           <option
@@ -620,7 +522,9 @@ export default function CartPage() {
                         ))}
                       </select>
                       {errors.comuna && (
-                        <span className="field-error">{errors.comuna.message}</span>
+                        <span className="field-error">
+                          {errors.comuna.message}
+                        </span>
                       )}
                     </div>
                     <div className="cart-shipping__field">
@@ -638,13 +542,17 @@ export default function CartPage() {
                         ))}
                       </select>
                       {errors.region && (
-                        <span className="field-error">{errors.region.message}</span>
+                        <span className="field-error">
+                          {errors.region.message}
+                        </span>
                       )}
                     </div>
                   </div>
 
                   {/* Courier selector */}
-                  <h3 className="cart-shipping__subtitle">Courier / Transporte</h3>
+                  <h3 className="cart-shipping__subtitle">
+                    Courier / Transporte
+                  </h3>
                   <div className="cart-shipping__courier">
                     <label className="cart-shipping__courier-option cart-shipping__courier-option--selected">
                       <input
@@ -654,12 +562,16 @@ export default function CartPage() {
                         {...register("courier")}
                       />
                       <div className="cart-shipping__courier-content">
-                        <span className="cart-shipping__courier-name">Starken</span>
+                        <span className="cart-shipping__courier-name">
+                          Starken
+                        </span>
                         <span className="cart-shipping__courier-desc">
                           Envío por Starken a todo el país
                         </span>
                       </div>
-                      <span className="cart-shipping__courier-badge">Seleccionado</span>
+                      <span className="cart-shipping__courier-badge">
+                        Seleccionado
+                      </span>
                     </label>
                   </div>
                 </div>
@@ -677,7 +589,7 @@ export default function CartPage() {
             <div className="cart-summary__row">
               <span>Envío (cobro a destino)</span>
               <span className="cart-summary__shipping">
-                {loadingShippingRate
+                {shippingRateStatus === "loading"
                   ? "Calculando..."
                   : shippingRate?.costoTotal
                     ? "Aprox. " + formatPrice(shippingRate.costoTotal)
@@ -685,12 +597,15 @@ export default function CartPage() {
               </span>
             </div>
             <p className="cart-summary__shipping-note">
-              El valor mostrado es aproximado. Starken cobrará el envío al recibirlo.
+              El valor mostrado es aproximado. Starken cobrará el envío al
+              recibirlo.
             </p>
             <div className="cart-summary__divider" />
             <div className="cart-summary__row cart-summary__row--total">
               <span>Total</span>
-              <span className="cart-summary__total">{formatPrice(totalPrice)}</span>
+              <span className="cart-summary__total">
+                {formatPrice(totalPrice)}
+              </span>
             </div>
             <button type="submit" className="cart-summary__checkout-btn">
               Continuar al pago

@@ -1,34 +1,48 @@
 import { fetchService } from "../lib/fetcher";
 
+const normalizeCatalogResponse = (response) => {
+  const meta = response?.meta || {};
+  return {
+    data: Array.isArray(response?.data) ? response.data : [],
+    page: meta.page || 1,
+    pages: meta.totalPages || 1,
+    count: meta.total || 0,
+    take: meta.limit || 12,
+  };
+};
+
+const buildPaginationQuery = (query, params) => {
+  if (params.take) query.set("limit", params.take);
+  if (params.offset != null) query.set("page", Number(params.offset) + 1);
+};
+
+const buildQueryString = (query) => {
+  const qs = query.toString();
+  return qs ? "?" + qs : "";
+};
+
 export const productService = {
-  getProducts(params = {}) {
+  async getProducts(params = {}) {
     const query = new URLSearchParams();
-    if (params.offset != null) query.set("offset", params.offset);
-    if (params.take) query.set("take", params.take);
-    if (params.name) query.set("name", params.name);
+    buildPaginationQuery(query, params);
+    if (params.name) query.set("search", params.name);
     if (params.categoryId) query.set("categoryId", params.categoryId);
-    if (params.offers) query.set("offers", "true");
-    const qs = query.toString();
-    return fetchService.get(`/products${qs ? `?${qs}` : ""}`);
+    const response = await fetchService.get("/catalog/products" + buildQueryString(query));
+    return normalizeCatalogResponse(response);
   },
 
   getProductBySlug(slug) {
-    return fetchService.get(`/products/${slug}`);
+    return fetchService.get("/catalog/products/" + slug);
   },
 
-  getRelevantProducts(params = {}) {
-    const query = new URLSearchParams();
-    if (params.take) query.set("take", params.take);
-    if (params.offset != null) query.set("offset", params.offset);
-    const qs = query.toString();
-    return fetchService.get(`/products/relevant/list${qs ? `?${qs}` : ""}`);
+  async getRelevantProducts(params = {}) {
+    return productService.getNewArrivals(params);
   },
 
-  getNewArrivals(params = {}) {
+  async getNewArrivals(params = {}) {
     const query = new URLSearchParams();
-    if (params.take) query.set("take", params.take);
-    if (params.offset != null) query.set("offset", params.offset);
-    const qs = query.toString();
-    return fetchService.get(`/catalog/products/new-arrivals${qs ? `?${qs}` : ""}`);
+    buildPaginationQuery(query, params);
+    const response = await fetchService.get("/catalog/products/new-arrivals" + buildQueryString(query));
+    return normalizeCatalogResponse(response);
   },
 };
