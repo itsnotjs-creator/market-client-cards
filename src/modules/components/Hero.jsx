@@ -17,7 +17,8 @@ import { useConfigStore } from "../../store/configStore";
 export default function Hero() {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
-  const homeLimit = useConfigStore((state) => state.settings.homeProductItemsLimit) || 8;
+  const homeLimit =
+    useConfigStore((state) => state.settings.homeProductItemsLimit) || 8;
 
   useEffect(() => {
     const fetchFeatured = async () => {
@@ -48,7 +49,8 @@ export default function Hero() {
           <div className="hero__content">
             <span className="hero__tagline">Fragancias que dejan huella</span>
             <h1 className="hero__title">
-              Perfumes 100% originales<br />
+              Perfumes 100% originales
+              <br />
               <span>para tu esencia</span>
             </h1>
             <p className="hero__subtitle">
@@ -89,7 +91,9 @@ export default function Hero() {
       <section className="categories-section">
         <div className="page-shell">
           <h2 className="section-title">Explora por categorías</h2>
-          <p className="section-subtitle">Encuentra el perfume perfecto para cada ocasión</p>
+          <p className="section-subtitle">
+            Encuentra el perfume perfecto para cada ocasión
+          </p>
           <CategoryCards />
         </div>
       </section>
@@ -110,7 +114,11 @@ export default function Hero() {
             <div className="featured__grid">
               {[...Array(homeLimit)].map((_, i) => (
                 <div key={i} className="product-card">
-                  <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 0 }} />
+                  <Skeleton
+                    variant="rectangular"
+                    height={200}
+                    sx={{ borderRadius: 0 }}
+                  />
                   <div style={{ padding: "0.85rem" }}>
                     <Skeleton variant="text" height={24} />
                     <Skeleton variant="text" width="60%" height={20} />
@@ -125,7 +133,13 @@ export default function Hero() {
               ))}
             </div>
           ) : (
-            <p style={{ color: "var(--text-secondary)", padding: "2rem 0", textAlign: "center" }}>
+            <p
+              style={{
+                color: "var(--text-secondary)",
+                padding: "2rem 0",
+                textAlign: "center",
+              }}
+            >
               No hay productos destacados disponibles
             </p>
           )}
