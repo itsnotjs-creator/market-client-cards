@@ -19,8 +19,6 @@ export default function SiteFooter() {
             <h4>Navegación</h4>
             <Link href="/">Inicio</Link>
             <Link href="/productos">Perfumes</Link>
-            <Link href="/productos?q=novedades">Novedades</Link>
-            <Link href="/productos?offers=true">Ofertas</Link>
           </div>
 
           <div className="footer__col">

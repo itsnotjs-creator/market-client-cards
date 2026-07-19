@@ -47,7 +47,7 @@ export default function NovedadesSection() {
       <div className="page-shell">
         <div className="featured__header">
           <h2 className="featured__title">Novedades</h2>
-          <Link href="/productos?q=novedades" className="featured__view-all">
+          <Link href="/productos" className="featured__view-all">
             Ver todas
           </Link>
         </div>

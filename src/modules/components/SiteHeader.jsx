@@ -16,8 +16,6 @@ import CartIcon from "./CartIcon";
 const navigation = [
   { href: "/", label: "Inicio" },
   { href: "/productos", label: "Perfumes" },
-  { href: "/productos?q=novedades", label: "Novedades" },
-  { href: "/productos?offers=true", label: "Ofertas" },
   { href: "/empresa", label: "Sobre nosotros" },
   { href: "/contacto", label: "Contacto" },
 ];

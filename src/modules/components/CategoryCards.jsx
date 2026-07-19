@@ -14,7 +14,6 @@ const categoryIcons = {
   arabe: "",
   nicho: "⭐",
   ofertas: "🏷️",
-  novedades: "✨",
 };
 
 function getCategoryIcon(name) {
@@ -24,7 +23,6 @@ function getCategoryIcon(name) {
   if (lower.includes("arabe") || lower.includes("oriental")) return categoryIcons.arabe;
   if (lower.includes("nicho") || lower.includes("exclusivo")) return categoryIcons.nicho;
   if (lower.includes("oferta")) return categoryIcons.ofertas;
-  if (lower.includes("novedad")) return categoryIcons.novedades;
   return categoryIcons.default;
 }
 

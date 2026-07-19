@@ -305,6 +305,46 @@
   color: var(--text-primary);
 }
 
+/* ===== Filters ===== */
+.products-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.products-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.products-filter:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.products-filter--active {
+  background: var(--ps-palette-error-main);
+  border-color: var(--ps-palette-error-main);
+  color: var(--white);
+}
+
+.products-filter--active:hover {
+  background: var(--ps-palette-error-dark);
+  border-color: var(--ps-palette-error-dark);
+  color: var(--white);
+}
+
 /* ===== Content ===== */
 .products-page__content {
   flex: 1;

@@ -88,6 +88,17 @@ function ProductosContent() {
     router.push(`/productos?${params.toString()}`);
   };
 
+  const handleOffersToggle = () => {
+    const params = new URLSearchParams(searchParams);
+    if (offers) {
+      params.delete("offers");
+    } else {
+      params.set("offers", "true");
+    }
+    params.delete("page");
+    router.push(`/productos?${params.toString()}`);
+  };
+
   const handlePageChange = (event, newPage) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", String(newPage));
@@ -125,6 +136,17 @@ function ProductosContent() {
               </button>
             )}
           </form>
+
+          <div className="products-filters">
+            <button
+              type="button"
+              onClick={handleOffersToggle}
+              className={`products-filter ${offers ? "products-filter--active" : ""}`}
+              aria-pressed={offers}
+            >
+              🏷️ Ofertas
+            </button>
+          </div>
 
           {searchQuery && (
             <p className="products-page__results-info">
