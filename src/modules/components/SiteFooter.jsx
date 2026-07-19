@@ -20,7 +20,7 @@ export default function SiteFooter() {
             <Link href="/">Inicio</Link>
             <Link href="/productos">Perfumes</Link>
             <Link href="/productos?q=novedades">Novedades</Link>
-            <Link href="/productos?q=ofertas">Ofertas</Link>
+            <Link href="/productos?offers=true">Ofertas</Link>
           </div>
 
           <div className="footer__col">
