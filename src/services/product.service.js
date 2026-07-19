@@ -7,6 +7,7 @@ export const productService = {
     if (params.take) query.set("take", params.take);
     if (params.name) query.set("name", params.name);
     if (params.categoryId) query.set("categoryId", params.categoryId);
+    if (params.offers) query.set("offers", "true");
     const qs = query.toString();
     return fetchService.get(`/products${qs ? `?${qs}` : ""}`);
   },

@@ -32,6 +32,7 @@ function ProductosContent() {
   const categoryId = searchParams.get("categoria");
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
   const searchQuery = searchParams.get("q") || "";
+  const offers = searchParams.get("offers") === "true";
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -42,6 +43,7 @@ function ProductosContent() {
       };
       if (categoryId) params.categoryId = categoryId;
       if (searchQuery) params.name = searchQuery;
+      if (offers) params.offers = true;
 
       const data = await productService.getProducts(params);
       setProducts(Array.isArray(data?.data) ? data.data : []);
@@ -56,7 +58,7 @@ function ProductosContent() {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, categoryId, searchQuery]);
+  }, [currentPage, categoryId, searchQuery, offers]);
 
   useEffect(() => {
     fetchProducts();
